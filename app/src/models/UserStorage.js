@@ -14,9 +14,9 @@ class UserStorage{
         return userInfo;
     }
 
-    // 이부분 어렵다 자주 보고 강의 다시 보기 20번째 강의임
-    static getUsers(...fields){
-        // const users = this.#users;
+    static #getUsers(data,isAll, fields){
+        const users = JSON.parse(data);
+        if(isAll) return users;
         const newUsers=fields.reduce((newUsers,field)=>{
             if(users.hasOwnProperty(field)){
                 newUsers[field]=users[field];
@@ -24,6 +24,16 @@ class UserStorage{
             return newUsers;
         },{});
         return newUsers; 
+    }
+
+    // 이부분 어렵다 자주 보고 강의 다시 보기 20번째 강의임
+    static getUsers(isAll, ...fields){
+        return fs
+        .readFile("./src/databases/users.json")
+        .then((data)=>{
+            return this.#getUsers(data,isAll, fields);
+        })
+        .catch(console.error);
     }
 
     // 여기도 어렵다 21번 강의 6분 부근에 나옴 다시 보자
@@ -36,12 +46,16 @@ class UserStorage{
         .catch(console.error);
     }
 
-    static save(userInfo){
-        // const users = this.#users;
+    static async save(userInfo){
+        const users=await this.getUsers(true);
+        if(users.id.includes(userInfo.id)){
+            throw "이미 존재하는 아이디임";
+        }
         users.id.push(userInfo.id);
         users.name.push(userInfo.name);
-        users.psword.push(userInfo.name);
-        return{success: true};
+        users.psword.push(userInfo.psword);
+        fs.writeFile("./src/databases/users.json",JSON.stringify(users));
+        return { success: true};
     }
 }
 
